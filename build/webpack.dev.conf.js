@@ -10,6 +10,41 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const portfinder = require('portfinder')
 
+//添加mock数据
+const express = require('express')
+const app = express()
+var apiRoutes = express.Router()
+app.use('/mock', apiRoutes)
+
+var mockCounter = require('../mock/counter.json')//加载本地数据文件
+
+
+function mockHttpHandler(app){
+  // counter ++
+  app.get('/mock/conuter', (req, res) => {
+    res.json({
+      errno: 0,
+      data: mockCounter
+    })
+  });
+
+  // counter ++
+  app.get('/mock/add-counter', (req, res) => {
+    res.json({
+      errno: 0,
+      data: mockCounter.addCount
+    })
+  });
+
+  // counter ——
+  app.get('/mock/redu-counter', (req, res) => {
+    res.json({
+      errno: 0,
+      data: mockCounter.reduCount
+    })
+  });
+}
+
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
 
@@ -42,8 +77,14 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     quiet: true, // necessary for FriendlyErrorsPlugin
     watchOptions: {
       poll: config.dev.poll,
-    }
+    },
+
+    //mock
+    before(app) {
+      mockHttpHandler(app)
+    },
   },
+
   plugins: [
     new webpack.DefinePlugin({
       'process.env': require('../config/dev.env')
